@@ -1,12 +1,16 @@
-/* Example from Leaflet Quick Start Guide*/
+/* Example from Leaflet GeoJSON tutorial*/
 
+// L.map is The central class of the API — it is used to create a map on a page and manipulate it.
+// setView Sets the view of the map (geographical center and zoom) with the given animation options.
 let map = L.map('mapid').setView([39.756, -104.994], 13);
 
-//add tile layer...replace project id and accessToken with your own
+// L.tileLayer is Used to load and display tile layers on the map.
+// addTo Adds the layer to the given map or layer group.
 L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
 }).addTo(map);
 
+// bindPopup Binds a popup to the layer with the passed content and sets up the necessary event listeners.
 function onEachFeature(feature, layer) {
   if (feature.properties && feature.properties.popupContent) {
     layer.bindPopup(feature.properties.popupContent);
@@ -47,6 +51,8 @@ let geojsonMarkerOptions = {
   fillOpacity: 0.8
 };
 
+// L.geoJSON Creates a GeoJSON layer. Optionally accepts an object in GeoJSON format to display on the map
+// L.circleMarker Instantiates a circle marker object given a geographical point, and an optional options object.
 L.geoJSON(geojsonFeature, {
   pointToLayer: function(feature, latlng) {
     return L.circleMarker(latlng, geojsonMarkerOptions);
