@@ -30,15 +30,6 @@ function getData(map){
         dataType: "json",
         success: function(response){
 
-          //create a Leaflet GeoJSON layer
-          var geoJsonLayer = L.geoJson(response);
-          //create a L.markerClusterGroup layer
-          var markers = L.markerClusterGroup();
-          //add geojson to marker cluster layer
-          markers.addLayer(geoJsonLayer);
-          //add marker cluster layer to map
-          map.addLayer(markers);
-
           //create marker options
           var geojsonMarkerOptions = {
               radius: 8,
