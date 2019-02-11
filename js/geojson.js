@@ -11,6 +11,18 @@ function createMap() {
   getData(map);
 };
 
+// popups
+function onEachFeature(feature, layer) {
+    var popupContent = "";
+    if (feature.properties) {
+        //loop to add feature property names and values to html string
+        for (var property in feature.properties){
+            popupContent += "<p>" + property + ": " + feature.properties
+        }
+        layer.bindPopup(popupContent);
+    };
+};
+
 //function to retrieve the data and place it on the map
 function getData(map){
     //load the data
@@ -27,11 +39,15 @@ function getData(map){
               fillOpacity: 0.8
           };
 
-          //create a Leaflet GeoJSON layer and add it to the map
+        //create a Leaflet GeoJSON layer and add it to the map
         L.geoJson(response, {
+            filter: function(feature, layer) {
+              return feature.properties.Pop_2015 > 20;
+            },
             pointToLayer: function (feature, latlng){
                 return L.circleMarker(latlng, geojsonMarkerOptions);
-            }
+            },
+            onEachFeature: onEachFeature
         }).addTo(map);
       }
   });
