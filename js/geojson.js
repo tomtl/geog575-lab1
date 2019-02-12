@@ -1,6 +1,8 @@
+let datasource = "data/power.geojson";
+
 function createMap() {
   // create the map
-  let map = L.map('mapid').setView([20, 0], 2);
+  let map = L.map('mapid').setView([39, -98], 4);
 
   // add base mapid
   L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -26,7 +28,7 @@ function onEachFeature(feature, layer) {
 //function to retrieve the data and place it on the map
 function getData(map){
     //load the data
-    $.ajax("data/megacities.geojson", {
+    $.ajax(datasource, {
         dataType: "json",
         success: function(response){
 
@@ -43,7 +45,7 @@ function getData(map){
         //create a Leaflet GeoJSON layer and add it to the map
         L.geoJson(response, {
             filter: function(feature, layer) {
-              return feature.properties.Pop_2015 > 20;
+              return feature.properties.Year = 2017;
             },
             pointToLayer: function (feature, latlng){
                 return L.circleMarker(latlng, geojsonMarkerOptions);
