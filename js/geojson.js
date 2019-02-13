@@ -32,32 +32,45 @@ function numberWithCommas(x) {
 
 // convert markets to circle markets
 function pointToLayer(feature, latlng) {
-  let attribute = "Total";
+    let attribute = "Total";
 
-  // marker options
-  let options = {
-      radius: 8,
-      fillColor: "#0000ff",
-      color: "#000",
-      weight: 1,
-      opacity: 1,
-      fillOpacity: 0.8
-  };
+    // marker options
+    let options = {
+        radius: 8,
+        fillColor: "#0000ff",
+        color: "#000",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.8
+    };
 
-  // circle size
-  let attValue = Number(feature.properties[attribute]);
-  options.radius = calcPropRadius(attValue);
-  let layer = L.circleMarker(latlng, options);
+    // circle size
+    let attValue = Number(feature.properties[attribute]);
+    options.radius = calcPropRadius(attValue);
+    let layer = L.circleMarker(latlng, options);
 
-  // popup
-  let popupContent =
-      "<p>" +
-      "<b>State:</b> " + feature.properties.state + "</br>" +
-      "<b>Total GWh:</b> " + numberWithCommas(feature.properties.Total / 1000.0) +
-      "</p>"
-  layer.bindPopup(popupContent);
-  return layer;
-}
+    // popup
+    let popupContent =
+        "<p>" +
+        "<b>State:</b> " + feature.properties.state + "</br>" +
+        "<b>Total GWh:</b> " + numberWithCommas(feature.properties.Total / 1000.0) +
+        "</p>"
+        
+    layer.bindPopup(popupContent, {
+        offset: new L.Point(0, -options.radius)
+    });
+
+    layer.on({
+        mouseover: function(){
+            this.openPopup();
+        },
+        mouseout: function(){
+            this.closePopup();
+        }
+    })
+
+    return layer;
+};
 
 // proportion circle markers
 function createPropSymbols(data, map){
