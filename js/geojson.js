@@ -52,18 +52,20 @@ function pointToLayer(feature, latlng) {
     // popup
     let popupContent =
         "<p>" +
-        "<b>" + feature.properties.state + "</b></br>" +
-        "<b>Total:</b> " + numberWithCommas(feature.properties.Total / 1000.0) + " GWh"
+        "<b>" + feature.properties.state + ":</b> " +
+        numberWithCommas(feature.properties.Total / 1000.0) + " GWh"
         "</p>"
 
     let panelContent =
         "<p>" +
         "<b>State: " + feature.properties.state + "</b></br>" +
+        "<b>Year:</b> " + feature.properties.Year + "</br>" +
         "<b>Total:</b> " + numberWithCommas(feature.properties.Total / 1000.0) + " GWh"
         "</p>"
 
     layer.bindPopup(popupContent, {
-        offset: new L.Point(0, -options.radius)
+        offset: new L.Point(0, -options.radius),
+        closeButton: false
     });
 
     layer.on({
