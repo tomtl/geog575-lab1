@@ -52,10 +52,16 @@ function pointToLayer(feature, latlng) {
     // popup
     let popupContent =
         "<p>" +
-        "<b>State:</b> " + feature.properties.state + "</br>" +
-        "<b>Total GWh:</b> " + numberWithCommas(feature.properties.Total / 1000.0) +
+        "<b>" + feature.properties.state + "</b></br>" +
+        "<b>Total:</b> " + numberWithCommas(feature.properties.Total / 1000.0) + " GWh"
         "</p>"
-        
+
+    let panelContent =
+        "<p>" +
+        "<b>State: " + feature.properties.state + "</b></br>" +
+        "<b>Total:</b> " + numberWithCommas(feature.properties.Total / 1000.0) + " GWh"
+        "</p>"
+
     layer.bindPopup(popupContent, {
         offset: new L.Point(0, -options.radius)
     });
@@ -66,6 +72,9 @@ function pointToLayer(feature, latlng) {
         },
         mouseout: function(){
             this.closePopup();
+        },
+        click: function(){
+          $("#panel").html(panelContent);
         }
     })
 
