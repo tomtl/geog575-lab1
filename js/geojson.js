@@ -13,18 +13,6 @@ function createMap() {
   getData(map);
 };
 
-// popups
-function onEachFeature(feature, layer) {
-    var popupContent = "";
-    if (feature.properties) {
-        //loop to add feature property names and values to html string
-        for (var property in feature.properties){
-            popupContent += "<p>" + property + ": " + feature.properties
-        }
-        layer.bindPopup(popupContent);
-    };
-};
-
 //calculate the radius of each proportional symbol
 function calcPropRadius(attValue) {
     //scale factor to adjust symbol size evenly
@@ -37,20 +25,43 @@ function calcPropRadius(attValue) {
     return radius;
 };
 
+// thousand comma separators
+function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+// convert markets to circle markets
+function pointToLayer(feature, latlng) {
+  let attribute = "Total";
+
+  // marker options
+  let options = {
+      radius: 8,
+      fillColor: "#0000ff",
+      color: "#000",
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0.8
+  };
+
+  // circle size
+  let attValue = Number(feature.properties[attribute]);
+  options.radius = calcPropRadius(attValue);
+  let layer = L.circleMarker(latlng, options);
+
+  // popup
+  let popupContent =
+      "<p>" +
+      "<b>State:</b> " + feature.properties.state + "</br>" +
+      "<b>Total GWh:</b> " + numberWithCommas(feature.properties.Total / 1000.0) +
+      "</p>"
+  layer.bindPopup(popupContent);
+  return layer;
+}
+
 // proportion circle markers
 function createPropSymbols(data, map){
-    let attribute = "Total";
     let year = 2017;
-
-    //create marker options
-    var geojsonMarkerOptions = {
-        radius: 8,
-        fillColor: "#ff7800",
-        color: "#000",
-        weight: 1,
-        opacity: 1,
-        fillOpacity: 0.8
-    };
 
     //create a Leaflet GeoJSON layer and add it to the map
     L.geoJson(data, {
@@ -59,13 +70,7 @@ function createPropSymbols(data, map){
               return true;
             }
         },
-        pointToLayer: function (feature, latlng) {
-            var attValue = Number(feature.properties[attribute]);
-            // console.log(feature.properties);
-            geojsonMarkerOptions.radius = calcPropRadius(attValue);
-            return L.circleMarker(latlng, geojsonMarkerOptions);
-        },
-        onEachFeature: onEachFeature
+        pointToLayer: pointToLayer
     }).addTo(map);
 };
 

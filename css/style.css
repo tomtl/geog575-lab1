@@ -2,3 +2,7 @@
   height: 360px;
   width: 720px;
 }
+
+.leaflet-popup-content {
+  margin: 0.2em 0;
+}
