@@ -44,7 +44,6 @@ function getData(map){
 
 function processData(data){
     let dataset = {};
-    let state = {};
 
     for (var i in data.features) {
         let feature = data.features[i];
@@ -71,18 +70,16 @@ function processData(data){
             price: feature.properties.Price_Residential
         };
 
-        let year_values = {year: state_year_values};
+        // load the values to the dictionary with all states and years
         if ( state_name in dataset == false ) {
           dataset[state_name] = {};
-
         };
         dataset[state_name][year] = state_year_values;
-
     };
+
     // console.log(dataset);
     return dataset;
-}
-
+};
 
 //calculate the radius of each proportional symbol
 function calcPropRadius(attValue) {
