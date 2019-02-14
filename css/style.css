@@ -1,11 +1,11 @@
 #mapid {
-  height: 400px;
-  width: 80%;
-  display: inline-block;
+    height: 400px;
+    width: 80%;
+    display: inline-block;
 }
 
 .leaflet-popup-content {
-  margin: 0 0;
+    margin: 0 0;
 }
 
 #panel {
@@ -13,4 +13,18 @@
     padding: 20px;
     display: inline-block;
     vertical-align: top;
+    text-align: center;
+    line-height: 42px;
+}
+
+.range-slider {
+    width: 50%;
+}
+
+#forward {
+    float: right;
+}
+
+#reverse {
+    float: left;
 }

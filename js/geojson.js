@@ -1,5 +1,6 @@
 let datasource = "data/power.geojson";
 
+// create the map
 function createMap() {
   // create the map
   let map = L.map('mapid').setView([39, -98], 4);
@@ -12,6 +13,76 @@ function createMap() {
   // get the data
   getData(map);
 };
+
+//function to retrieve the data and place it on the map
+function getData(map){
+    //load the data
+    $.ajax(datasource, {
+        dataType: "json",
+        success: function(response){
+
+        let attributes = processData(response);
+        let year = 2017;
+        createSequenceControls(map, year);
+        createPropSymbols(response, map, attributes, year);
+      }
+  });
+};
+
+// build an array of data attributes
+// function processData(data){
+//     let attributes = [];
+//     let properties = data.features[0].properties;
+//
+//     for (var attribute in properties) {
+//             attributes.push(attribute);
+//     };
+//
+//     console.log(attributes);
+//     return attributes;
+// };
+
+function processData(data){
+    let dataset = {};
+    let state = {};
+
+    for (var i in data.features) {
+        let feature = data.features[i];
+        let state_name = feature.properties.state;
+        let year = feature.properties.Year;
+
+        let state_year_values = {
+            state: feature.properties.state,
+            year: feature.properties.Year,
+            coal: feature.properties.Coal,
+            geothermal: feature.properties.Geothermal,
+            hydroelectric: feature.properties.Hydroelectric,
+            natutralgas: feature.properties.NaturalGas,
+            nuclear: feature.properties.Nuclear,
+            other: feature.properties.Other,
+            otherbiomass: feature.properties.OtherBiomass,
+            othergases: feature.properties.OtherGases,
+            petroleum: feature.properties.Petroleum,
+            pumpedstorage: feature.properties.PumpedStorage,
+            solar: feature.properties.Solar,
+            total: feature.properties.Total,
+            wind: feature.properties.Wind,
+            wood: feature.properties.Wood,
+            price: feature.properties.Price_Residential
+        };
+
+        let year_values = {year: state_year_values};
+        if ( state_name in dataset == false ) {
+          dataset[state_name] = {};
+
+        };
+        dataset[state_name][year] = state_year_values;
+
+    };
+    // console.log(dataset);
+    return dataset;
+}
+
 
 //calculate the radius of each proportional symbol
 function calcPropRadius(attValue) {
@@ -52,7 +123,7 @@ function pointToLayer(feature, latlng) {
     // popup
     let popupContent =
         "<p>" +
-        "<b>" + feature.properties.state + ":</b> " +
+        "<b>" + feature.properties.state + " " + feature.properties.Year + ":</b> " +
         numberWithCommas(feature.properties.Total / 1000.0) + " GWh"
         "</p>"
 
@@ -84,29 +155,64 @@ function pointToLayer(feature, latlng) {
 };
 
 // proportion circle markers
-function createPropSymbols(data, map){
-    let year = 2017;
-
+function createPropSymbols(data, map, attributes, year){
     //create a Leaflet GeoJSON layer and add it to the map
     L.geoJson(data, {
         filter: function(feature, layer) {
+            console.log("filter year: " + year);
             if (feature.properties.Year == year) {
               return true;
             }
         },
-        pointToLayer: pointToLayer
+        pointToLayer: function(feature, latlng) {
+            return pointToLayer(feature, latlng, attributes)
+        }
     }).addTo(map);
 };
 
-//function to retrieve the data and place it on the map
-function getData(map){
-    //load the data
-    $.ajax(datasource, {
-        dataType: "json",
-        success: function(response){
+// Sequence create
+function createSequenceControls(map, year) {
+    // range input slider
+    $("#panel").append('<input class="range-slider" type="range">');
 
-        createPropSymbols(response, map);
-      }
-  });
+    $('.range-slider').attr({
+        max: 2017,
+        min: 1990,
+        value: 2017,
+        step: 1
+    });
+
+    // add skip buttons
+    $('#panel').append(
+        '<button class="skip" id="reverse">&#8592;</button>'
+    );
+
+    $("#panel").append(
+      '<button class="skip" id="forward">&#8594;</button>'
+    );
+
+    // skip slider value
+    $('.range-slider').on('input', function(){
+        var index = $(this).val();
+        year = index;
+    });
+
+    // skip buttons value
+    $('.skip').click(function(){
+        var index = $('.range-slider').val();
+
+        if ($(this).attr('id') == 'forward') {
+            index ++;
+            index = index > 2017 ? 1990 : index;
+            year = index;
+        } else if ($(this).attr('id') == 'reverse'){
+            index --;
+            index = index < 1990 ? 2017 : index;
+            year = index;
+        };
+        $('.range-slider').val(index);
+    });
 };
+
+
 $(document).ready(createMap);
