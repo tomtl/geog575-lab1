@@ -23,7 +23,7 @@ function getData(map){
 
         let attributes = processData(response);
         let year = 2017;
-        createSequenceControls(map, year);
+        createSequenceControls(map, attributes, year);
         createPropSymbols(response, map, attributes, year);
       }
   });
@@ -81,26 +81,25 @@ function processData(data){
     return dataset;
 };
 
-//calculate the radius of each proportional symbol
-function calcPropRadius(attValue) {
-    //scale factor to adjust symbol size evenly
-    var scaleFactor = (1.0 / 1000000);
-    //area based on attribute value and scale factor
-    var area = attValue * scaleFactor;
-    //radius calculated based on area
-    var radius = Math.sqrt(area/Math.PI);
-
-    return radius;
+// proportion circle markers
+function createPropSymbols(data, map, attributes, year){
+    //create a Leaflet GeoJSON layer and add it to the map
+    L.geoJson(data, {
+        filter: function(feature, layer) {
+            // console.log("filter year: " + year);
+            if (feature.properties.Year == year) {
+              return true;
+            }
+        },
+        pointToLayer: function(feature, latlng) {
+            return pointToLayer(feature, latlng, attributes, year)
+        }
+    }).addTo(map);
 };
 
-// thousand comma separators
-function numberWithCommas(x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
 // convert markets to circle markets
-function pointToLayer(feature, latlng) {
-    let attribute = "Total";
+function pointToLayer(feature, latlng, attributes, year) {
+    let attribute = "total";
 
     // marker options
     let options = {
@@ -113,14 +112,36 @@ function pointToLayer(feature, latlng) {
     };
 
     // circle size
-    let attValue = Number(feature.properties[attribute]);
+    let state = feature.properties.state;
+    let attValue = Number(attributes[state][year][attribute]);
+    // let attValue = Number(feature.properties[attribute]);
     options.radius = calcPropRadius(attValue);
     let layer = L.circleMarker(latlng, options);
+
+    createPopups(feature, latlng, attributes, year, layer, options);
+    return layer;
+};
+
+//calculate the radius of each proportional symbol
+function calcPropRadius(attValue) {
+    //scale factor to adjust symbol size evenly
+    var scaleFactor = (1.0 / 1000000);
+    //area based on attribute value and scale factor
+    var area = attValue * scaleFactor;
+    //radius calculated based on area
+    var radius = Math.sqrt(area/Math.PI);
+
+    return radius;
+};
+
+function createPopups(feature, latlng, attributes, year, layer, options){
+    let attribute = "total";
+    let state = feature.properties.state;
 
     // popup
     let popupContent =
         "<p>" +
-        "<b>" + feature.properties.state + " " + feature.properties.Year + ":</b> " +
+        "<b>" + state + " " + year + ":</b> " +
         numberWithCommas(feature.properties.Total / 1000.0) + " GWh"
         "</p>"
 
@@ -147,28 +168,15 @@ function pointToLayer(feature, latlng) {
           $("#panel").html(panelContent);
         }
     })
-
-    return layer;
 };
 
-// proportion circle markers
-function createPropSymbols(data, map, attributes, year){
-    //create a Leaflet GeoJSON layer and add it to the map
-    L.geoJson(data, {
-        filter: function(feature, layer) {
-            console.log("filter year: " + year);
-            if (feature.properties.Year == year) {
-              return true;
-            }
-        },
-        pointToLayer: function(feature, latlng) {
-            return pointToLayer(feature, latlng, attributes)
-        }
-    }).addTo(map);
-};
+// thousand comma separators
+function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
 
 // Sequence create
-function createSequenceControls(map, year) {
+function createSequenceControls(map, attributes, year) {
     // range input slider
     $("#panel").append('<input class="range-slider" type="range">');
 
@@ -188,28 +196,62 @@ function createSequenceControls(map, year) {
       '<button class="skip" id="forward">&#8594;</button>'
     );
 
-    // skip slider value
+    // change year using slider value
     $('.range-slider').on('input', function(){
         var index = $(this).val();
         year = index;
+        updatePropSymbols(map, attributes, year)
     });
 
-    // skip buttons value
+    // change year using skip buttons value
     $('.skip').click(function(){
         var index = $('.range-slider').val();
 
         if ($(this).attr('id') == 'forward') {
             index ++;
             index = index > 2017 ? 1990 : index;
-            year = index;
+            updatePropSymbols(map, attributes, year)
         } else if ($(this).attr('id') == 'reverse'){
             index --;
             index = index < 1990 ? 2017 : index;
             year = index;
+            updatePropSymbols(map, attributes, year)
         };
         $('.range-slider').val(index);
     });
 };
 
+//Step 10: Resize proportional symbols according to new attribute values
+function updatePropSymbols(map, attributes, year){
+    map.eachLayer(function(layer){
+        if (layer.feature) {
+          let attribute = 'total'
+          let state = layer.feature.properties.state
+          let value = Number(attributes[state][year][attribute]);
+
+          let radius = calcPropRadius(value);
+
+          layer.setRadius(radius);
+
+          let popupContent =
+              "<p>" +
+              "<b>" + state + " " + year + ":</b> " +
+              numberWithCommas(value / 1000.0) + " GWh"
+              "</p>"
+
+          let panelContent =
+              "<p>" +
+              "<b>State: " + state + "</b></br>" +
+              "<b>Year:</b> " + year + "</br>" +
+              "<b>Total:</b> " + numberWithCommas(value / 1000.0) + " GWh"
+              "</p>"
+
+            //replace the layer popup
+            layer.bindPopup(popupContent, {
+               offset: new L.Point(0,-radius)
+            });
+        };
+    });
+};
 
 $(document).ready(createMap);
