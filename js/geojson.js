@@ -105,7 +105,21 @@ function pointToLayer(feature, latlng, attributes, year) {
     options.radius = calcPropRadius(attValue);
     let layer = L.circleMarker(latlng, options);
 
-    createPopups(feature, attributes, year, layer);
+    var popup = new Popup(feature, attributes, year, layer);
+    popup.bindToLayer();
+    // createPopups(feature, attributes, year, layer);
+
+    layer.on({
+        mouseover: function(){
+            this.openPopup();
+        },
+        mouseout: function(){
+            this.closePopup();
+        },
+        click: function(){
+          $("#panel").html(popup.panelContent);
+        }
+    })
     return layer;
 };
 
@@ -121,42 +135,34 @@ function calcPropRadius(attValue) {
     return radius;
 };
 
-function createPopups(feature, attributes, year, layer){
-    let attribute = "total";
-    let state = feature.properties.state;
-    let value = Number(attributes[state][year][attribute]);
-    radius = calcPropRadius(value)
+function Popup(feature, attributes, year, layer){
+    this.feature = feature;
+    this.attributes = attributes;
+    this.year = year;
+    this.layer = layer;
+    this.attribute = "total";
+    this.state = feature.properties.state;
+    this.value = Number(attributes[this.state][this.year][this.attribute]);
+    this.radius = calcPropRadius(this.value);
 
-    // popup
-    let popupContent =
+    this.popupContent =
         "<p>" +
-        "<b>" + state + " " + year + ":</b> " +
-        numberWithCommas(value / 1000.0) + " GWh"
+        "<b>" + this.state + " " + this.year + ":</b> " +
+        numberWithCommas(this.value / 1000.0) + " GWh"
         "</p>"
 
-    let panelContent =
+    this.panelContent =
         "<p>" +
-        "<b>State: " + state + "</b></br>" +
-        "<b>Year:</b> " + year + "</br>" +
-        "<b>Total:</b> " + numberWithCommas(value / 1000.0) + " GWh"
+        "<b>State: " + this.state + "</b></br>" +
+        "<b>Year:</b> " + this.year + "</br>" +
+        "<b>Total:</b> " + numberWithCommas(this.value / 1000.0) + " GWh"
         "</p>"
 
-    layer.bindPopup(popupContent, {
-        offset: new L.Point(0, radius),
-        closeButton: false
-    });
-
-    layer.on({
-        mouseover: function(){
-            this.openPopup();
-        },
-        mouseout: function(){
-            this.closePopup();
-        },
-        click: function(){
-          $("#panel").html(panelContent);
-        }
-    })
+    this.bindToLayer = function(){
+        this.layer.bindPopup(this.popupContent, {
+            offset: new L.Point(0, -this.radius)
+        });
+    };
 };
 
 // thousand comma separators
@@ -222,7 +228,8 @@ function updatePropSymbols(map, attributes, year){
 
           layer.setRadius(radius);
 
-          createPopups(layer.feature, attributes, year, layer)
+          var popup = new Popup(layer.feature, attributes, year, layer);
+          popup.bindToLayer();
         };
     });
 };
