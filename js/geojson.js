@@ -29,19 +29,6 @@ function getData(map){
   });
 };
 
-// build an array of data attributes
-// function processData(data){
-//     let attributes = [];
-//     let properties = data.features[0].properties;
-//
-//     for (var attribute in properties) {
-//             attributes.push(attribute);
-//     };
-//
-//     console.log(attributes);
-//     return attributes;
-// };
-
 function processData(data){
     let dataset = {};
 
@@ -118,7 +105,7 @@ function pointToLayer(feature, latlng, attributes, year) {
     options.radius = calcPropRadius(attValue);
     let layer = L.circleMarker(latlng, options);
 
-    createPopups(feature, latlng, attributes, year, layer, options);
+    createPopups(feature, attributes, year, layer);
     return layer;
 };
 
@@ -134,26 +121,28 @@ function calcPropRadius(attValue) {
     return radius;
 };
 
-function createPopups(feature, latlng, attributes, year, layer, options){
+function createPopups(feature, attributes, year, layer){
     let attribute = "total";
     let state = feature.properties.state;
+    let value = Number(attributes[state][year][attribute]);
+    radius = calcPropRadius(value)
 
     // popup
     let popupContent =
         "<p>" +
         "<b>" + state + " " + year + ":</b> " +
-        numberWithCommas(feature.properties.Total / 1000.0) + " GWh"
+        numberWithCommas(value / 1000.0) + " GWh"
         "</p>"
 
     let panelContent =
         "<p>" +
-        "<b>State: " + feature.properties.state + "</b></br>" +
-        "<b>Year:</b> " + feature.properties.Year + "</br>" +
-        "<b>Total:</b> " + numberWithCommas(feature.properties.Total / 1000.0) + " GWh"
+        "<b>State: " + state + "</b></br>" +
+        "<b>Year:</b> " + year + "</br>" +
+        "<b>Total:</b> " + numberWithCommas(value / 1000.0) + " GWh"
         "</p>"
 
     layer.bindPopup(popupContent, {
-        offset: new L.Point(0, -options.radius),
+        offset: new L.Point(0, radius),
         closeButton: false
     });
 
@@ -233,23 +222,7 @@ function updatePropSymbols(map, attributes, year){
 
           layer.setRadius(radius);
 
-          let popupContent =
-              "<p>" +
-              "<b>" + state + " " + year + ":</b> " +
-              numberWithCommas(value / 1000.0) + " GWh"
-              "</p>"
-
-          let panelContent =
-              "<p>" +
-              "<b>State: " + state + "</b></br>" +
-              "<b>Year:</b> " + year + "</br>" +
-              "<b>Total:</b> " + numberWithCommas(value / 1000.0) + " GWh"
-              "</p>"
-
-            //replace the layer popup
-            layer.bindPopup(popupContent, {
-               offset: new L.Point(0,-radius)
-            });
+          createPopups(layer.feature, attributes, year, layer)
         };
     });
 };
