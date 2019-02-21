@@ -210,8 +210,9 @@ function createSequenceControls(map, attributes, year) {
             $(container).append('<button class="skip" id="forward" title="Forward">&#8594;</button>');
 
             // stop any event listeners on the map
-            $(container).on('mousedown dblclick', function(e){
+            $(container).on('mousedown mouseover dblclick', function(e){
                 L.DomEvent.stopPropagation(e);
+                L.DomEvent.disableClickPropagation(container);
             });
 
             return container;
@@ -226,11 +227,16 @@ function createSequenceControls(map, attributes, year) {
         step: 1
     });
 
+    function updateSequenceControlsTitle(year){
+        $('.sequence-title').text(year);
+    };
+
     // change year using slider value
     $('.range-slider').on('input', function(){
         var index = $(this).val();
         year = index;
         updatePropSymbols(map, attributes, year)
+        updateSequenceControlsTitle(year);
     });
 
     // change year using skip buttons value
@@ -241,15 +247,18 @@ function createSequenceControls(map, attributes, year) {
             index ++;
             index = index > 2017 ? 1990 : index;
             updatePropSymbols(map, attributes, year)
+            updateSequenceControlsTitle(year);
         } else if ($(this).attr('id') == 'reverse'){
             index --;
             index = index < 1990 ? 2017 : index;
             year = index;
             updatePropSymbols(map, attributes, year)
+            updateSequenceControlsTitle(year);
         };
         $('.range-slider').val(index);
     });
 };
+
 
 // Legend
 function createLegend(map, attributes, year){
