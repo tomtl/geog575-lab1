@@ -274,11 +274,68 @@ function createLegend(map, attributes, year){
             // create legend
             $(container).append('<h3 class="legend-title">Total power generation (GWh)</h3>')
 
+            // add temporal legend div
+            $(container).append('<div id="temporal-legend">')
+
+            let svg = '<svg id="attribute-legend" width="180px" height="180px">';
+
+            let circles = ["max", "mean", "min"];
+
+            for (var i=0; i<circles.length; i++){
+                svg += '<circle class="legend-circle" id="' + circles[i] +
+                '" fill="#F47821" fill-opacity="0.8" stroke="#000000" cx="90"/>';
+            }
+
+            // close the svg string
+            svg += "</svg>";
+
+            $(container).append(svg);
+
+
+
             return container;
         }
     });
 
     map.addControl(new LegendControl());
+};
+
+function getCircleValues(map, attributes, year) {
+    let min = Infintity,
+        max = -Infinity;
+
+    map.eachLayer(function(layer){
+        if (layer.feature){
+            let state = feature.properties.state;
+            let attribute = 'total';
+            let attributeValue = Number(attributes[state][year][attribute]);
+
+            // test for min and max
+            if (attributeValue < min){
+                min = attributeValue;
+            };
+
+            if (attributeValue > max){
+                max = attributeValue;
+            };
+        };
+    });
+
+    let mean = (max + min) / 2;
+
+    return {
+        max: max,
+        mean: mean,
+        min: min
+    };
+};
+
+function updateLegend(map, attributes, year) {
+    let content = "Total power generation (GWh)";
+
+    $('#temporal-legend').html(content);
+
+    let circleValues = getCircleValues(map, attributes, year);
 };
 
 $(document).ready(createMap);
