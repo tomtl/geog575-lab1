@@ -25,6 +25,7 @@ function getData(map){
         let year = 2017;
         createSequenceControls(map, attributes, year);
         createPropSymbols(response, map, attributes, year);
+        createLegend(map, attributes, year);
       }
   });
 };
@@ -135,6 +136,24 @@ function calcPropRadius(attValue) {
     return radius;
 };
 
+// Resize proportional symbols according to new attribute values
+function updatePropSymbols(map, attributes, year){
+    map.eachLayer(function(layer){
+        if (layer.feature) {
+          let attribute = 'total'
+          let state = layer.feature.properties.state
+          let value = Number(attributes[state][year][attribute]);
+
+          let radius = calcPropRadius(value);
+
+          layer.setRadius(radius);
+
+          var popup = new Popup(layer.feature, attributes, year, layer);
+          popup.bindToLayer();
+        };
+    });
+};
+
 function Popup(feature, attributes, year, layer){
     this.feature = feature;
     this.attributes = attributes;
@@ -170,10 +189,35 @@ function numberWithCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-// Sequence create
+// Sequence controls
 function createSequenceControls(map, attributes, year) {
-    // range input slider
-    $("#panel").append('<input class="range-slider" type="range">');
+    let SequenceControl = L.Control.extend({
+        options: {
+            position: 'bottomleft'
+        },
+        onAdd: function(map) {
+          // create control container div
+            let container = L.DomUtil.create('div', 'sequence-control-container');
+
+            // sequence title
+            $(container).append('<h3 class="sequence-title">' + year + '</h3>')
+
+            // create range input slider
+            $(container).append('<input class="range-slider" type="range">');
+
+            // add skip buttons
+            $(container).append('<button class="skip" id="reverse" title="Reverse">&#8592;</button>');
+            $(container).append('<button class="skip" id="forward" title="Forward">&#8594;</button>');
+
+            // stop any event listeners on the map
+            $(container).on('mousedown dblclick', function(e){
+                L.DomEvent.stopPropagation(e);
+            });
+
+            return container;
+        }
+    });
+    map.addControl(new SequenceControl());
 
     $('.range-slider').attr({
         max: 2017,
@@ -181,15 +225,6 @@ function createSequenceControls(map, attributes, year) {
         value: 2017,
         step: 1
     });
-
-    // add skip buttons
-    $('#panel').append(
-        '<button class="skip" id="reverse">&#8592;</button>'
-    );
-
-    $("#panel").append(
-      '<button class="skip" id="forward">&#8594;</button>'
-    );
 
     // change year using slider value
     $('.range-slider').on('input', function(){
@@ -216,22 +251,25 @@ function createSequenceControls(map, attributes, year) {
     });
 };
 
-//Step 10: Resize proportional symbols according to new attribute values
-function updatePropSymbols(map, attributes, year){
-    map.eachLayer(function(layer){
-        if (layer.feature) {
-          let attribute = 'total'
-          let state = layer.feature.properties.state
-          let value = Number(attributes[state][year][attribute]);
+// Legend
+function createLegend(map, attributes, year){
+    let LegendControl = L.Control.extend({
+        options: {
+            position: 'bottomright'
+        },
 
-          let radius = calcPropRadius(value);
+        onAdd: function(map) {
+            // legend container
+            let container = L.DomUtil.create('div', 'legend-control-container');
 
-          layer.setRadius(radius);
+            // create legend
+            $(container).append('<h3 class="legend-title">Total power generation (GWh)</h3>')
 
-          var popup = new Popup(layer.feature, attributes, year, layer);
-          popup.bindToLayer();
-        };
+            return container;
+        }
     });
+
+    map.addControl(new LegendControl());
 };
 
 $(document).ready(createMap);

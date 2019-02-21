@@ -18,7 +18,7 @@
 }
 
 .range-slider {
-    width: 50%;
+    width: 100px;
 }
 
 #forward {
@@ -27,4 +27,33 @@
 
 #reverse {
     float: left;
+}
+
+.sequence-control-container {
+    width: 200px;
+    /* height: 20px; */
+    background-color: rgba(255,255,255,0.8);
+    padding-left: 10px;
+    padding-right: 10px;
+    line-height: 45px;
+    text-align: center;
+    border-radius: 5px;
+}
+
+.sequence-title {
+    line-height: 0em;
+}
+
+.legend-control-container {
+    width: 200px;
+    /* height: 20px; */
+    background-color: rgba(255,255,255,0.8);
+    padding: 10px;
+    line-height: 45px;
+    text-align: center;
+    border-radius: 5px;
+}
+
+.legend-title {
+    line-height: normal;
 }
