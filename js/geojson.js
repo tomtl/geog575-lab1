@@ -282,11 +282,31 @@ function createLegend(map, attributes, year){
 
             let svg = '<svg id="attribute-legend" width="160px" height="60px">';
 
-            let circles = ["max", "mean", "min"];
+            // let circles = ["max", "mean", "min"];
+            let circles = {
+                max: 20,
+                mean: 40,
+                min: 60
+            };
 
-            for (var i=0; i<circles.length; i++){
-                svg += '<circle class="legend-circle" id="' + circles[i] +
-                '" fill="#F47821" fill-opacity="0.8" stroke="#000000" cx="30"/>';
+            // loop to add each circle and text to svg string
+            // for (var i=0; i<circles.length; i++){
+            //     let circleString = '<circle class="legend-circle" id="' + circles[i] +
+            //     '" fill="#F47821" fill-opacity="0.8" stroke="#000000" cx="30"/>';
+            //
+            //     svg += circleString;
+            //
+            //     let textString = '<text id="' + circles[i] + '-text" x="65" y="60"></text>';
+            //
+            //     svg += textString;
+            // };
+
+            for (var circle in circles){
+                let circleString = '<circle class="legend-circle" id="' + circle + '" fill="#F47821" fill-opacity="0.8" stroke="#000000" cx="30"/>';
+                svg += circleString;
+
+                let textString = '<text id="' + circle + '-text" x="65" y="' + circles[circle] + '"></text>';
+                svg += textString;
             }
 
             // close the svg string
@@ -349,6 +369,10 @@ function updateLegend(map, attributes, year) {
             cy: 59 - radius,
             r: radius
         });
+
+        // add legend text
+        let legendText = numberWithCommas(Math.round(circleValues[key]/1000000)*1000) + " GWh";
+        $('#'+key+'-text').text(legendText);
     };
 };
 
