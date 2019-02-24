@@ -237,6 +237,7 @@ function createSequenceControls(map, attributes, year) {
         year = index;
         updatePropSymbols(map, attributes, year)
         updateSequenceControlsTitle(year);
+        updateLegend(map, attributes, year);
     });
 
     // change year using skip buttons value
@@ -248,12 +249,14 @@ function createSequenceControls(map, attributes, year) {
             index = index > 2017 ? 1990 : index;
             updatePropSymbols(map, attributes, year)
             updateSequenceControlsTitle(year);
+            updateLegend(map, attributes, year);
         } else if ($(this).attr('id') == 'reverse'){
             index --;
             index = index < 1990 ? 2017 : index;
             year = index;
             updatePropSymbols(map, attributes, year)
             updateSequenceControlsTitle(year);
+            updateLegend(map, attributes, year);
         };
         $('.range-slider').val(index);
     });
@@ -277,13 +280,13 @@ function createLegend(map, attributes, year){
             // add temporal legend div
             $(container).append('<div id="temporal-legend">')
 
-            let svg = '<svg id="attribute-legend" width="180px" height="180px">';
+            let svg = '<svg id="attribute-legend" width="160px" height="60px">';
 
             let circles = ["max", "mean", "min"];
 
             for (var i=0; i<circles.length; i++){
                 svg += '<circle class="legend-circle" id="' + circles[i] +
-                '" fill="#F47821" fill-opacity="0.8" stroke="#000000" cx="90"/>';
+                '" fill="#F47821" fill-opacity="0.8" stroke="#000000" cx="30"/>';
             }
 
             // close the svg string
@@ -298,20 +301,21 @@ function createLegend(map, attributes, year){
     });
 
     map.addControl(new LegendControl());
+    updateLegend(map, attributes, year);
 };
 
 function getCircleValues(map, attributes, year) {
-    let min = Infintity,
+    let min = Infinity,
         max = -Infinity;
 
     map.eachLayer(function(layer){
         if (layer.feature){
-            let state = feature.properties.state;
+            let state = layer.feature.properties.state;
             let attribute = 'total';
             let attributeValue = Number(attributes[state][year][attribute]);
 
             // test for min and max
-            if (attributeValue < min){
+            if (0 < attributeValue < min){
                 min = attributeValue;
             };
 
@@ -336,6 +340,16 @@ function updateLegend(map, attributes, year) {
     $('#temporal-legend').html(content);
 
     let circleValues = getCircleValues(map, attributes, year);
+
+    for (var key in circleValues){
+        let radius = calcPropRadius(circleValues[key]);
+
+        // assign the cy and r attributes
+        $('#'+key).attr({
+            cy: 59 - radius,
+            r: radius
+        });
+    };
 };
 
 $(document).ready(createMap);
