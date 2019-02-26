@@ -61,7 +61,7 @@ function processData(data){
 
         // load the values to the dictionary with all states and years
         if ( state_name in dataset == false ) {
-          dataset[state_name] = {};
+            dataset[state_name] = {};
         };
         dataset[state_name][year] = state_year_values;
     };
@@ -77,7 +77,7 @@ function createPropSymbols(data, map, attributes, year){
         filter: function(feature, layer) {
             // console.log("filter year: " + year);
             if (feature.properties.Year == year) {
-              return true;
+                return true;
             }
         },
         pointToLayer: function(feature, latlng) {
@@ -189,7 +189,7 @@ function Popup(feature, attributes, year, layer){
 // thousand comma separators
 function numberWithCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
+};
 
 // Sequence controls
 function createSequenceControls(map, attributes, year) {
@@ -291,7 +291,7 @@ function createLegend(map, attributes, year){
             };
 
             for (var circle in circles){
-                let circleString = '<circle class="legend-circle" id="' + circle + '" fill="#0000ff" fill-opacity="0.8" stroke="#000000" cx="30"/>';
+                let circleString = '<circle class="legend-circle" id="' + circle + '" fill="#ffff00" fill-opacity="0.8" stroke="#000000" cx="30"/>';
                 svg += circleString;
 
                 let textString = '<text id="' + circle + '-text" x="65" y="' + circles[circle] + '"></text>';
