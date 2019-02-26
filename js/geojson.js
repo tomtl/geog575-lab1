@@ -249,6 +249,7 @@ function createSequenceControls(map, attributes, year) {
         if ($(this).attr('id') == 'forward') {
             index ++;
             index = index > 2017 ? 1990 : index;
+            year = index;
             updatePropSymbols(map, attributes, year)
             updateSequenceControlsTitle(year);
             updateLegend(map, attributes, year);
