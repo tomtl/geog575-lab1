@@ -2,16 +2,17 @@ let datasource = "data/power.geojson";
 
 // create the map
 function createMap() {
-  // create the map
-  let map = L.map('mapid').setView([39, -98], 4);
+    // create the map
+    let map = L.map('mapid').setView([39, -98], 4);
 
-  // add base mapid
-  L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
-  }).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      	subdomains: 'abcd',
+      	maxZoom: 19
+    }).addTo(map);
 
-  // get the data
-  getData(map);
+    // get the data
+    getData(map);
 };
 
 //function to retrieve the data and place it on the map
@@ -92,7 +93,8 @@ function pointToLayer(feature, latlng, attributes, year) {
     // marker options
     let options = {
         radius: 8,
-        fillColor: "#0000ff",
+        // fillColor: "#0000ff",
+        fillColor: "#ffff00",
         color: "#000",
         weight: 1,
         opacity: 1,
@@ -140,16 +142,16 @@ function calcPropRadius(attValue) {
 function updatePropSymbols(map, attributes, year){
     map.eachLayer(function(layer){
         if (layer.feature) {
-          let attribute = 'total'
-          let state = layer.feature.properties.state
-          let value = Number(attributes[state][year][attribute]);
+            let attribute = 'total'
+            let state = layer.feature.properties.state
+            let value = Number(attributes[state][year][attribute]);
 
-          let radius = calcPropRadius(value);
+            let radius = calcPropRadius(value);
 
-          layer.setRadius(radius);
+            layer.setRadius(radius);
 
-          var popup = new Popup(layer.feature, attributes, year, layer);
-          popup.bindToLayer();
+            var popup = new Popup(layer.feature, attributes, year, layer);
+            popup.bindToLayer();
         };
     });
 };
