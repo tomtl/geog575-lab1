@@ -27,6 +27,7 @@ function getData(map){
         createSequenceControls(map, attributes, year);
         createPropSymbols(response, map, attributes, year);
         createLegend(map, attributes, year);
+        createLayerSelector(map, attributes, year);
       }
   });
 };
@@ -45,7 +46,7 @@ function processData(data){
             coal: feature.properties.Coal,
             geothermal: feature.properties.Geothermal,
             hydroelectric: feature.properties.Hydroelectric,
-            natutralgas: feature.properties.NaturalGas,
+            naturalgas: feature.properties.NaturalGas,
             nuclear: feature.properties.Nuclear,
             other: feature.properties.Other,
             otherbiomass: feature.properties.OtherBiomass,
@@ -139,10 +140,13 @@ function calcPropRadius(attValue) {
 };
 
 // Resize proportional symbols according to new attribute values
-function updatePropSymbols(map, attributes, year){
+function updatePropSymbols(map, attributes, year, attribute){
+    attribute = attribute || 'total';
+    console.log(year, attribute);
+
     map.eachLayer(function(layer){
         if (layer.feature) {
-            let attribute = 'total'
+            // let attribute = 'total'
             let state = layer.feature.properties.state
             let value = Number(attributes[state][year][attribute]);
 
@@ -188,7 +192,9 @@ function Popup(feature, attributes, year, layer){
 
 // thousand comma separators
 function numberWithCommas(x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    x = Math.round(x);
+    // return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return x.toLocaleString('en');
 };
 
 // Sequence controls
@@ -304,8 +310,6 @@ function createLegend(map, attributes, year){
 
             $(container).append(svg);
 
-
-
             return container;
         }
     });
@@ -363,7 +367,60 @@ function updateLegend(map, attributes, year) {
         // add legend text
         let legendText = numberWithCommas(Math.round(circleValues[key]/1000000)*1000) + " GWh";
         $('#'+key+'-text').text(legendText);
+
     };
+};
+
+// Legend
+function createLayerSelector(map, attributes, year){
+    let LayerSelector = L.Control.extend({
+        options: {
+            position: 'topright'
+        },
+
+        onAdd: function(map) {
+            var div = L.DomUtil.create('div', 'info legend');
+            div.innerHTML =
+            // '<select id="layer-select"><option>1</option><option>2</option><option>3</option></select>';
+            '<select id="layer-select">' +
+                '<option value="total" selected="selected">Total power generation</option>' +
+                '<option value="coal">Coal</option>' +
+                '<option value="geothermal">Geothermal</option>' +
+                '<option value="hydroelectric">Hydroelectric</option>' +
+                '<option value="naturalgas">Natural gas</option>' +
+                '<option value="nuclear">Nuclear</option>' +
+                '<option value="other">Other</option>' +
+                '<option value="otherbiomass">Other biomass</option>' +
+                '<option value="othergases">Other gases</option>' +
+                '<option value="petroleum">Petroleum</option>' +
+                '<option value="pumpedstorage">Pumped storage</option>' +
+                '<option value="solar">Solar</option>' +
+                '<option value="wind">Wind</option>' +
+                '<option value="wood">Wood</option>' +
+            '</select>'
+            div.firstChild.onmousedown = div.firstChild.ondblclick = L.DomEvent.stopPropagation;
+            return div;
+        }
+    });
+
+    // legend.addTo(map);
+
+    map.addControl(new LayerSelector());
+    // updateLegend(map, attributes, year);
+
+    var e = document.getElementById("layer-select");
+    var attribute = e.options[e.selectedIndex].value;
+
+    $('select').change(function(){
+        attribute = e.options[e.selectedIndex].value;
+        // alert('changed' + strUser);
+        console.log(attribute);
+        updateLayerSelection(map, attributes, year, attribute)
+    });
+};
+
+function updateLayerSelection(map, attributes, year, attribute){
+    updatePropSymbols(map, attributes, year, attribute);
 };
 
 $(document).ready(createMap);
