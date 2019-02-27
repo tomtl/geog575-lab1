@@ -24,10 +24,11 @@ function getData(map){
 
         let attributes = processData(response);
         let year = 2017;
-        createSequenceControls(map, attributes, year);
-        createPropSymbols(response, map, attributes, year);
-        createLegend(map, attributes, year);
-        createLayerSelector(map, attributes, year);
+        let attribute = 'total';
+        createSequenceControls(map, attributes, year, attribute);
+        createPropSymbols(response, map, attributes, year, attribute);
+        createLegend(map, attributes, year, attribute);
+        createLayerSelector(map, attributes, year, attribute);
       }
   });
 };
@@ -67,34 +68,31 @@ function processData(data){
         dataset[state_name][year] = state_year_values;
     };
 
-    // console.log(dataset);
     return dataset;
 };
 
 // proportion circle markers
-function createPropSymbols(data, map, attributes, year){
+function createPropSymbols(data, map, attributes, year, attribute){
     //create a Leaflet GeoJSON layer and add it to the map
     L.geoJson(data, {
         filter: function(feature, layer) {
-            // console.log("filter year: " + year);
             if (feature.properties.Year == year) {
                 return true;
             }
         },
         pointToLayer: function(feature, latlng) {
-            return pointToLayer(feature, latlng, attributes, year)
+            return pointToLayer(feature, latlng, attributes, year, attribute)
         }
     }).addTo(map);
 };
 
 // convert markets to circle markets
-function pointToLayer(feature, latlng, attributes, year) {
-    let attribute = "total";
+function pointToLayer(feature, latlng, attributes, year, attribute) {
+    // let attribute = "total";
 
     // marker options
     let options = {
         radius: 8,
-        // fillColor: "#0000ff",
         fillColor: "#ffff00",
         color: "#000",
         weight: 1,
@@ -109,7 +107,7 @@ function pointToLayer(feature, latlng, attributes, year) {
     options.radius = calcPropRadius(attValue);
     let layer = L.circleMarker(latlng, options);
 
-    var popup = new Popup(feature, attributes, year, layer);
+    var popup = new Popup(feature, attributes, year, layer, attribute);
     popup.bindToLayer();
     // createPopups(feature, attributes, year, layer);
 
@@ -136,14 +134,18 @@ function calcPropRadius(attValue) {
     //radius calculated based on area
     var radius = Math.sqrt(area/Math.PI);
 
+
+    if (attValue > 0){
+        if (radius < 2){
+            radius = 2.0;
+        }
+    };
+
     return radius;
 };
 
 // Resize proportional symbols according to new attribute values
 function updatePropSymbols(map, attributes, year, attribute){
-    attribute = attribute || 'total';
-    console.log(year, attribute);
-
     map.eachLayer(function(layer){
         if (layer.feature) {
             // let attribute = 'total'
@@ -154,25 +156,25 @@ function updatePropSymbols(map, attributes, year, attribute){
 
             layer.setRadius(radius);
 
-            var popup = new Popup(layer.feature, attributes, year, layer);
+            var popup = new Popup(layer.feature, attributes, year, layer, attribute);
             popup.bindToLayer();
         };
     });
 };
 
-function Popup(feature, attributes, year, layer){
+function Popup(feature, attributes, year, layer, attribute){
     this.feature = feature;
     this.attributes = attributes;
     this.year = year;
     this.layer = layer;
-    this.attribute = "total";
+    this.attribute = attribute;
     this.state = feature.properties.state;
     this.value = Number(attributes[this.state][this.year][this.attribute]);
     this.radius = calcPropRadius(this.value);
 
     this.popupContent =
         "<p>" +
-        "<b>" + this.state + " " + this.year + ":</b> " +
+        "<b>" + this.state + " " + this.year + " " + this.attribute+ ":</b> " +
         numberWithCommas(this.value / 1000.0) + " GWh"
         "</p>"
 
@@ -193,12 +195,11 @@ function Popup(feature, attributes, year, layer){
 // thousand comma separators
 function numberWithCommas(x) {
     x = Math.round(x);
-    // return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     return x.toLocaleString('en');
 };
 
 // Sequence controls
-function createSequenceControls(map, attributes, year) {
+function createSequenceControls(map, attributes, year, attribute) {
     let SequenceControl = L.Control.extend({
         options: {
             position: 'bottomleft'
@@ -239,13 +240,17 @@ function createSequenceControls(map, attributes, year) {
         $('.sequence-title').text(year);
     };
 
+    function changeYear(map, attributes, year, attribute){
+        updatePropSymbols(map, attributes, year, attribute)
+        updateSequenceControlsTitle(year, attribute);
+        updateLegend(map, attributes, year, attribute);
+    };
+
     // change year using slider value
     $('.range-slider').on('input', function(){
         var index = $(this).val();
         year = index;
-        updatePropSymbols(map, attributes, year)
-        updateSequenceControlsTitle(year);
-        updateLegend(map, attributes, year);
+        changeYear(map, attributes, year, attribute);
     });
 
     // change year using skip buttons value
@@ -256,16 +261,49 @@ function createSequenceControls(map, attributes, year) {
             index ++;
             index = index > 2017 ? 1990 : index;
             year = index;
-            updatePropSymbols(map, attributes, year)
-            updateSequenceControlsTitle(year);
-            updateLegend(map, attributes, year);
+            changeYear(map, attributes, year, attribute);
         } else if ($(this).attr('id') == 'reverse'){
             index --;
             index = index < 1990 ? 2017 : index;
             year = index;
-            updatePropSymbols(map, attributes, year)
-            updateSequenceControlsTitle(year);
-            updateLegend(map, attributes, year);
+            changeYear(map, attributes, year, attribute);
+        };
+        $('.range-slider').val(index);
+    });
+};
+
+function updateSequenceControls(map, attributes, year, attribute){
+    function updateSequenceControlsTitle(year){
+        $('.sequence-title').text(year);
+    };
+
+    function changeYear(map, attributes, year, attribute){
+        updatePropSymbols(map, attributes, year, attribute)
+        updateSequenceControlsTitle(year, attribute);
+        updateLegend(map, attributes, year, attribute);
+    };
+
+    // change year using slider value
+    $('.range-slider').on('input', function(){
+        var index = $(this).val();
+        year = index;
+        changeYear(map, attributes, year, attribute);
+    });
+
+    // change year using skip buttons value
+    $('.skip').click(function(){
+        var index = $('.range-slider').val();
+
+        if ($(this).attr('id') == 'forward') {
+            index ++;
+            index = index > 2017 ? 1990 : index;
+            year = index;
+            changeYear(map, attributes, year, attribute);
+        } else if ($(this).attr('id') == 'reverse'){
+            index --;
+            index = index < 1990 ? 2017 : index;
+            year = index;
+            changeYear(map, attributes, year, attribute);
         };
         $('.range-slider').val(index);
     });
@@ -273,7 +311,7 @@ function createSequenceControls(map, attributes, year) {
 
 
 // Legend
-function createLegend(map, attributes, year){
+function createLegend(map, attributes, year, attribute){
     let LegendControl = L.Control.extend({
         options: {
             position: 'bottomright'
@@ -282,9 +320,6 @@ function createLegend(map, attributes, year){
         onAdd: function(map) {
             // legend container
             let container = L.DomUtil.create('div', 'legend-control-container');
-
-            // create legend
-            $(container).append('<h3 class="legend-title">Total power generation (GWh)</h3>')
 
             // add temporal legend div
             $(container).append('<div id="temporal-legend">')
@@ -315,17 +350,17 @@ function createLegend(map, attributes, year){
     });
 
     map.addControl(new LegendControl());
-    updateLegend(map, attributes, year);
+    updateLegend(map, attributes, year, attribute);
 };
 
-function getCircleValues(map, attributes, year) {
+function getCircleValues(map, attributes, year, attribute) {
     let min = Infinity,
         max = -Infinity;
 
     map.eachLayer(function(layer){
         if (layer.feature){
             let state = layer.feature.properties.state;
-            let attribute = 'total';
+            // let attribute = 'total';
             let attributeValue = Number(attributes[state][year][attribute]);
 
             // test for min and max
@@ -348,12 +383,12 @@ function getCircleValues(map, attributes, year) {
     };
 };
 
-function updateLegend(map, attributes, year) {
-    let content = "Total power generation (GWh)";
+function updateLegend(map, attributes, year, attribute) {
+    let content = attribute + " (GWh)";
 
     $('#temporal-legend').html(content);
 
-    let circleValues = getCircleValues(map, attributes, year);
+    let circleValues = getCircleValues(map, attributes, year, attribute);
 
     for (var key in circleValues){
         let radius = calcPropRadius(circleValues[key]);
@@ -379,9 +414,8 @@ function createLayerSelector(map, attributes, year){
         },
 
         onAdd: function(map) {
-            var div = L.DomUtil.create('div', 'info legend');
+            var div = L.DomUtil.create('div', 'layer-selector');
             div.innerHTML =
-            // '<select id="layer-select"><option>1</option><option>2</option><option>3</option></select>';
             '<select id="layer-select">' +
                 '<option value="total" selected="selected">Total power generation</option>' +
                 '<option value="coal">Coal</option>' +
@@ -403,24 +437,21 @@ function createLayerSelector(map, attributes, year){
         }
     });
 
-    // legend.addTo(map);
-
     map.addControl(new LayerSelector());
-    // updateLegend(map, attributes, year);
 
     var e = document.getElementById("layer-select");
     var attribute = e.options[e.selectedIndex].value;
 
     $('select').change(function(){
         attribute = e.options[e.selectedIndex].value;
-        // alert('changed' + strUser);
-        console.log(attribute);
         updateLayerSelection(map, attributes, year, attribute)
     });
 };
 
 function updateLayerSelection(map, attributes, year, attribute){
     updatePropSymbols(map, attributes, year, attribute);
+    updateSequenceControls(map, attributes, year, attribute);
+    updateLegend(map, attributes, year, attribute);
 };
 
 $(document).ready(createMap);

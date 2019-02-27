@@ -48,7 +48,7 @@
     width: 200px;
     /* height: 20px; */
     background-color: rgba(255,255,255,0.8);
-    padding: 10px;
+    padding: 5px;
     line-height: 45px;
     text-align: center;
     border-radius: 5px;
@@ -56,4 +56,20 @@
 
 .legend-title {
     line-height: normal;
+    /* font-weight: bold; */
+}
+
+#temporal-legend {
+    line-height: normal;
+    font-weight: bold;
+}
+
+.layer-selector {
+    width: 200px;
+    /* height: 20px; */
+    background-color: rgba(255,255,255,0.8);
+    padding: 5px;
+    line-height: 45px;
+    text-align: center;
+    border-radius: 5px;
 }
