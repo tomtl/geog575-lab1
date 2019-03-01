@@ -71,6 +71,42 @@ function processData(data){
     return dataset;
 };
 
+function getLabel(attribute){
+    let label = "";
+    switch(attribute) {
+        case 'total': label = 'Total';
+            break;
+        case 'coal': label = 'Coal';
+            break;
+        case 'geothermal': label = 'Geothermal';
+            break;
+        case 'hydroelectric': label = 'Hydroelectric';
+            break;
+        case 'naturalgas': label = 'Natural gas';
+            break;
+        case 'nuclear': label = 'Nuclear';
+            break;
+        case 'other': label = 'Other';
+            break;
+        case 'otherbiomass': label = 'Other biomass';
+            break;
+        case 'othergases': label = 'Other gases';
+            break;
+        case 'petroleum': label = 'Petroleum';
+            break;
+        case 'pumpedstorage': label = 'Pumped storage';
+            break;
+        case 'solar': label = 'Solar';
+            break;
+        case 'wind': label = 'Wind';
+            break;
+        case 'wood': label = 'Wood';
+            break;
+    }
+
+    return label;
+};
+
 // proportion circle markers
 function createPropSymbols(data, map, attributes, year, attribute){
     //create a Leaflet GeoJSON layer and add it to the map
@@ -171,10 +207,11 @@ function Popup(feature, attributes, year, layer, attribute){
     this.state = feature.properties.state;
     this.value = Number(attributes[this.state][this.year][this.attribute]);
     this.radius = calcPropRadius(this.value);
+    this.label = getLabel(attribute);
 
     this.popupContent =
         "<p>" +
-        "<b>" + this.state + " " + this.year + " " + this.attribute+ ":</b> " +
+        "<b>" + this.state + " " + this.label + " " + this.year+ ":</b> " +
         numberWithCommas(this.value / 1000.0) + " GWh"
         "</p>"
 
@@ -384,7 +421,7 @@ function getCircleValues(map, attributes, year, attribute) {
 };
 
 function updateLegend(map, attributes, year, attribute) {
-    let content = attribute + " (GWh)";
+    let content = getLabel(attribute) + " (GWh)";
 
     $('#temporal-legend').html(content);
 
