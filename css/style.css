@@ -1,20 +1,25 @@
+html, body {
+    height: 100%;
+}
+
+#title {
+    line-height: 0.5em;
+}
+
+#footer {
+    line-height: 0.25em;
+}
+
 #mapid {
-    height: 400px;
-    width: 80%;
-    display: inline-block;
+    padding: 0px;
+    margin: 0px;
+    height: 80%;
+    width: 100%;
+    border-radius: 5px;
 }
 
 .leaflet-popup-content {
     margin: 0 0;
-}
-
-#panel {
-    width: 16%;
-    padding: 20px;
-    display: inline-block;
-    vertical-align: top;
-    text-align: center;
-    line-height: 42px;
 }
 
 .range-slider {
