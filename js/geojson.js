@@ -139,13 +139,12 @@ function pointToLayer(feature, latlng, attributes, year, attribute) {
     // circle size
     let state = feature.properties.state;
     let attValue = Number(attributes[state][year][attribute]);
-    // let attValue = Number(feature.properties[attribute]);
+
     options.radius = calcPropRadius(attValue);
     let layer = L.circleMarker(latlng, options);
 
     var popup = new Popup(feature, attributes, year, layer, attribute);
     popup.bindToLayer();
-    // createPopups(feature, attributes, year, layer);
 
     layer.on({
         mouseover: function(){
@@ -184,7 +183,6 @@ function calcPropRadius(attValue) {
 function updatePropSymbols(map, attributes, year, attribute){
     map.eachLayer(function(layer){
         if (layer.feature) {
-            // let attribute = 'total'
             let state = layer.feature.properties.state
             let value = Number(attributes[state][year][attribute]);
 
@@ -397,7 +395,6 @@ function getCircleValues(map, attributes, year, attribute) {
     map.eachLayer(function(layer){
         if (layer.feature){
             let state = layer.feature.properties.state;
-            // let attribute = 'total';
             let attributeValue = Number(attributes[state][year][attribute]);
 
             // test for min and max
@@ -431,6 +428,7 @@ function updateLegend(map, attributes, year, attribute) {
         let radius = calcPropRadius(circleValues[key]);
 
         // assign the cy and r attributes
+        if (radius == false){radius = 0};
         $('#'+key).attr({
             cy: 59 - radius,
             r: radius
@@ -439,7 +437,6 @@ function updateLegend(map, attributes, year, attribute) {
         // add legend text
         let legendText = numberWithCommas(Math.round(circleValues[key]/1000000)*1000) + " GWh";
         $('#'+key+'-text').text(legendText);
-
     };
 };
 
@@ -452,7 +449,12 @@ function createLayerSelector(map, attributes, year){
 
         onAdd: function(map) {
             var div = L.DomUtil.create('div', 'layer-selector');
-            div.innerHTML =
+
+            // title
+            $(div).append('<h3 class="layer-selector-title">Power Source</h3>')
+
+            // drop-down layer selection menu
+            let layerDropdownHtml =
             '<select id="layer-select">' +
                 '<option value="total" selected="selected">Total power generation</option>' +
                 '<option value="coal">Coal</option>' +
@@ -468,8 +470,11 @@ function createLayerSelector(map, attributes, year){
                 '<option value="solar">Solar</option>' +
                 '<option value="wind">Wind</option>' +
                 '<option value="wood">Wood</option>' +
-            '</select>'
-            div.firstChild.onmousedown = div.firstChild.ondblclick = L.DomEvent.stopPropagation;
+            '</select>';
+
+            $(div).append(layerDropdownHtml)
+
+            div.onmousedown = div.ondblclick = L.stopPropagation;
             return div;
         }
     });
